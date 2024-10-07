@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DBMS Tutorial with Audio and Speech Recognition</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: row;
+    }
+
+    #left-pane {
+      width: 20%;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      position: fixed;
+      height: 90%;
+      overflow-y: scroll;
+    }
+
+    #left-pane ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #left-pane ul li {
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #e0e0e0;
+      color: #4A90E2;
+      font-weight: bold;
+    }
+
+    #left-pane ul li:hover {
+      background: #f0f2f5;
+    }
+
+    #content {
+      margin-left: 25%;
+      width: 70%;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 30px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      display: none;
+      z-index: 10;
+    }
+
+    .modal-content {
+      font-size: 18px;
+    }
+
+    .modal-controls {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .modal-close button, .modal-controls button {
+      background-color: #4A90E2;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    .speaker-symbol {
+      font-size: 24px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="left-pane">
+    <ul>
+      <li onclick="togglePlay(0)">Introduction to DBMS</li>
+      <li onclick="togglePlay(1)">Database Models</li>
+      <li onclick="togglePlay(2)">Relational Model</li>
+      <li onclick="togglePlay(3)">Normalization</li>
+      <li onclick="togglePlay(4)">SQL and Queries</li>
+      <li onclick="togglePlay(5)">ER Diagrams</li>
+      <li onclick="togglePlay(6)">Indexes</li>
+      <li onclick="togglePlay(7)">Transactions</li>
+      <li onclick="togglePlay(8)">ACID Properties</li>
+      <li onclick="togglePlay(9)">Concurrency Control</li>
+      <li onclick="togglePlay(10)">Database Security</li>
+      <li onclick="togglePlay(11)">Backup and Recovery</li>
+      <li onclick="togglePlay(12)">Data Warehousing</li>
+      <li onclick="togglePlay(13)">NoSQL Databases</li>
+      <li onclick="togglePlay(14)">Big Data and DBMS</li>
+      <li onclick="togglePlay(15)">Distributed Databases</li>
+      <li onclick="togglePlay(16)">Data Mining</li>
+      <li onclick="togglePlay(17)">Cloud Databases</li>
+    </ul>
+  </div>
+
+  <div id="content">
+    <h1>DBMS Tutorial</h1>
+    <p>Click on a topic from the left pane to start learning about it with audio support!</p>
+  </div>
+
+  <div id="modal" class="modal">
+    <div id="modal-content" class="modal-content"></div>
+    <div class="modal-controls">
+      <span id="speaker-button" class="speaker-symbol" onclick="togglePause()">🔊</span>
+      <button onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // Array to hold the text of all tutorial sections in order
+    const tutorialTexts = [
+      "A Database Management System, or DBMS, is software used to create, maintain, and interact with databases.",
+      "Database Models: Hierarchical, Network, Relational, and Object-oriented models define how data is organized.",
+      "The Relational Model represents data using tables and defines relationships between those tables using primary and foreign keys.",
+      "Normalization is the process of organizing data to minimize redundancy and improve data integrity.",
+      "SQL is the language used to interact with relational databases. It includes commands for querying, updating, and managing data.",
+      "ER Diagrams are used to visually represent entities and their relationships in a database.",
+      "Indexes are data structures that improve the speed of data retrieval operations on a database.",
+      "Transactions are sequences of database operations that are treated as a single unit, ensuring consistency.",
+      "ACID Properties ensure that transactions are processed reliably. They stand for Atomicity, Consistency, Isolation, and Durability.",
+      "Concurrency Control manages simultaneous operations on a database to ensure consistency.",
+      "Database Security involves protecting data from unauthorized access, corruption, or theft.",
+      "Backup and Recovery are strategies to ensure data safety and integrity, allowing restoration after failures.",
+      "Data Warehousing involves the storage of large volumes of data for analysis and reporting purposes.",
+      "NoSQL Databases provide flexible data models for unstructured or semi-structured data.",
+      "Big Data and DBMS: Managing, processing, and analyzing large volumes of data require specialized techniques.",
+      "Distributed Databases are spread across multiple locations or nodes, allowing greater availability and scalability.",
+      "Data Mining is the process of discovering patterns and insights from large sets of data.",
+      "Cloud Databases are managed on cloud computing platforms, offering scalability and remote accessibility."
+    ];
+
+    let currentUtterance = null;
+    let currentSectionIndex = -1;
+    let isPaused = false;
+
+    function togglePlay(sectionIndex) {
+      if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
+      }
+
+      currentSectionIndex = sectionIndex;
+
+      // Create a new utterance for the selected section
+      currentUtterance = new SpeechSynthesisUtterance(tutorialTexts[sectionIndex]);
+      currentUtterance.lang = 'en-US';
+      currentUtterance.rate = 1; // Speech rate
+
+      currentUtterance.onend = function() {
+        playNext();
+      };
+
+      // Display the modal with the tutorial content
+      document.getElementById('modal-content').textContent = tutorialTexts[sectionIndex];
+      openModal();
+
+      // Speak the utterance
+      speechSynthesis.speak(currentUtterance);
+    }
+
+    function togglePause() {
+      const speakerButton = document.getElementById('speaker-button');
+
+      if (speechSynthesis.speaking && !isPaused) {
+        speechSynthesis.pause();
+        speakerButton.textContent = '⏸️'; // Change to pause symbol
+        isPaused = true;
+      } else if (isPaused) {
+        speechSynthesis.resume();
+        speakerButton.textContent = '🔊'; // Change back to speaker symbol
+        isPaused = false;
+      }
+    }
+
+    function playNext() {
+      const nextIndex = currentSectionIndex + 1;
+      if (nextIndex < tutorialTexts.length) {
+        togglePlay(nextIndex);
+      } else {
+        closeModal();
+      }
+    }
+
+    function openModal() {
+      const modal = document.getElementById('modal');
+      modal.style.display = 'block';
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('modal');
+      modal.style.display = 'none';
+      speechSynthesis.cancel();
+      const speakerButton = document.getElementById('speaker-button');
+      speakerButton.textContent = '🔊'; // Reset to speaker symbol
+      isPaused = false; // Reset pause state
+    }
+  </script>
+</body>
+</html>

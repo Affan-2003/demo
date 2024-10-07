@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python Tutorial with Audio and Speech Recognition</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: row;
+    }
+
+    #left-pane {
+      width: 20%;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      position: fixed;
+      height: 90%;
+      overflow-y: scroll;
+    }
+
+    #left-pane ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #left-pane ul li {
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #e0e0e0;
+      color: #4A90E2;
+      font-weight: bold;
+    }
+
+    #left-pane ul li:hover {
+      background: #f0f2f5;
+    }
+
+    #content {
+      margin-left: 25%;
+      width: 70%;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 30px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      display: none;
+      z-index: 10;
+    }
+
+    .modal-content {
+      font-size: 18px;
+    }
+
+    .modal-controls {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .modal-close button, .modal-controls button {
+      background-color: #4A90E2;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    .speaker-symbol {
+      font-size: 24px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="left-pane">
+    <ul>
+      <li onclick="togglePlay(0)">Introduction to Python</li>
+      <li onclick="togglePlay(1)">Variables and Data Types</li>
+      <li onclick="togglePlay(2)">Control Structures</li>
+      <li onclick="togglePlay(3)">Functions</li>
+      <li onclick="togglePlay(4)">Modules and Packages</li>
+      <li onclick="togglePlay(5)">File Handling</li>
+      <li onclick="togglePlay(6)">Error and Exception Handling</li>
+      <li onclick="togglePlay(7)">Object-Oriented Programming</li>
+      <li onclick="togglePlay(8)">Python Libraries</li>
+      <li onclick="togglePlay(9)">Web Development with Python</li>
+      <li onclick="togglePlay(10)">Data Analysis with Python</li>
+      <li onclick="togglePlay(11)">Machine Learning with Python</li>
+      <li onclick="togglePlay(12)">Python in Data Science</li>
+      <li onclick="togglePlay(13)">Python for Automation</li>
+      <li onclick="togglePlay(14)">Testing in Python</li>
+      <li onclick="togglePlay(15)">Conclusion</li>
+    </ul>
+  </div>
+
+  <div id="content">
+    <h1>Python Tutorial</h1>
+    <p>Click on a topic from the left pane to start learning about it with audio support!</p>
+  </div>
+
+  <div id="modal" class="modal">
+    <div id="modal-content" class="modal-content"></div>
+    <div class="modal-controls">
+      <span id="speaker-button" class="speaker-symbol" onclick="togglePause()">🔊</span>
+      <button onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // Array to hold the text of all tutorial sections in order
+    const tutorialTexts = [
+      "Python is a popular programming language known for its simplicity and versatility.",
+      "Variables are used to store data, and Python supports various data types such as integers, floats, and strings.",
+      "Control structures, including if statements and loops, allow for decision making and repeated execution in Python.",
+      "Functions are blocks of code that perform specific tasks and can be reused throughout the code.",
+      "Modules and packages help organize and manage code in Python, allowing for code reusability and modularity.",
+      "File handling in Python allows for reading and writing files to store data persistently.",
+      "Error and exception handling is crucial for writing robust programs that can gracefully handle unexpected situations.",
+      "Object-oriented programming in Python allows for organizing code using classes and objects to model real-world entities.",
+      "Python offers a rich set of libraries for various tasks, from web development to data analysis.",
+      "Python is widely used in web development through frameworks like Django and Flask.",
+      "Data analysis with Python is commonly done using libraries like Pandas and NumPy.",
+      "Machine learning with Python is supported by libraries such as TensorFlow and scikit-learn.",
+      "Python plays a significant role in data science for analyzing and visualizing data.",
+      "Python can be used for automation tasks, making repetitive tasks easier and more efficient.",
+      "Testing in Python ensures code reliability and helps catch bugs before deployment.",
+      "In conclusion, Python is a versatile language suitable for many applications."
+    ];
+
+    let currentUtterance = null;
+    let currentSectionIndex = -1;
+    let isPaused = false;
+
+    function togglePlay(sectionIndex) {
+      if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
+      }
+
+      currentSectionIndex = sectionIndex;
+
+      // Create a new utterance for the selected section
+      currentUtterance = new SpeechSynthesisUtterance(tutorialTexts[sectionIndex]);
+      currentUtterance.lang = 'en-US';
+      currentUtterance.rate = 1; // Speech rate
+
+      currentUtterance.onend = function() {
+        playNext();
+      };
+
+      // Display the modal with the tutorial content
+      document.getElementById('modal-content').textContent = tutorialTexts[sectionIndex];
+      openModal();
+
+      // Speak the utterance
+      speechSynthesis.speak(currentUtterance);
+    }
+
+    function togglePause() {
+      const speakerButton = document.getElementById('speaker-button');
+
+      if (speechSynthesis.speaking && !isPaused) {
+        speechSynthesis.pause();
+        speakerButton.textContent = '⏸️'; // Change to pause symbol
+        isPaused = true;
+      } else if (isPaused) {
+        speechSynthesis.resume();
+        speakerButton.textContent = '🔊'; // Change back to speaker symbol
+        isPaused = false;
+      }
+    }
+
+    function playNext() {
+      const nextIndex = currentSectionIndex + 1;
+      if (nextIndex < tutorialTexts.length) {
+        togglePlay(nextIndex);
+      } else {
+        closeModal();
+      }
+    }
+
+    function openModal() {
+      const modal = document.getElementById('modal');
+      modal.style.display = 'block';
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('modal');
+      modal.style.display = 'none';
+      speechSynthesis.cancel();
+      const speakerButton = document.getElementById('speaker-button');
+      speakerButton.textContent = '🔊'; // Reset to speaker symbol
+      isPaused = false; // Reset pause state
+    }
+  </script>
+</body>
+</html>
